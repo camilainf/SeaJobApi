@@ -24,5 +24,16 @@ router.get('/users', async (req, res) => {
     }
 });
 
+// GET BY ID: Leer todos los usuarios
+router.get('/users/:id', async (req, res) => {
+    const {id} = req.params;
+    try {
+        const users = await User.findById(id);
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
 
