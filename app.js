@@ -1,18 +1,16 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const initDb = require('./src/configs/db')
+const allRoutes = require("./src/routes/index");
 require("dotenv").config();
-const userRoutes = require("./src/routes/users");
 
 const app = express();
 const port = process.env.PORT || 9000;
 
 // middleware
 app.use(express.json());
-app.use('/api', userRoutes);
+app.use('/api', allRoutes);
 
-// mongodb connection
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch((error) => console.error(error));
+// Iniciar Base de datos
+initDb();
 
 app.listen(port, () => console.log(`server listning to port ${port}`));
