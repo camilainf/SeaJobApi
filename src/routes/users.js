@@ -35,5 +35,27 @@ router.get('/users/:id', async (req, res) => {
     }
 });
 
+// PUT: Actualizar un usuario
+router.put('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, email, password } = req.body;
+
+    // Ambas formas sirven
+    
+    // Forma 1
+    // User
+    //     .updateOne({ _id: id }, { $set: {name, email, password} })
+    //     .then((data) => res.json(data))
+    //     .catch((error) => res.json({message: error}));
+
+    // Forma 2
+    try {
+        const user = await User.updateOne({ _id: id }, { $set: {name, email, password} })
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;
 
