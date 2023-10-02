@@ -32,8 +32,7 @@ const userSchema = new mongoose.Schema({
         default: ""
     },
     calificacion: {
-        type: number,
-        ref: true,
+        type: Number,
     },
 });
 
