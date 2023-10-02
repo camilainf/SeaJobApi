@@ -2,41 +2,46 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const serviceSchema = new Schema({
-    titulo: {
+    idCreador: {
+        type: Number,
+        required: true
+      },
+      nombreServicio: {
         type: String,
         required: true
-    },
-    descripcion: {
+      },
+      categoria: {
         type: String,
         required: true
-    },
-    categoria: {
-        type: Schema.Types.ObjectId,
-        ref: 'Category',
-        required: true
-    },
-    ubicacion: {
+      },
+      descripcion: {
         type: String,
         required: true
-    },
-    duracion: {
+      },
+      fechaSolicitud: {
         type: String,
         required: true
-    },
-    usuarioPublicadorId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    usuarioTrabajadorId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User'
-    },
-    estado: {
+      },
+      horaSolicitud: {
         type: String,
-        enum: ['pendiente', 'en progreso', 'completado'],
-        default: 'pendiente'
-    }
-});
+        required: true
+      },
+      direccion: {
+        type: String,
+        required: true
+      },
+      monto: {
+        type: Number,
+        required: true
+      },
+      imagen: {
+        type: String,
+        default: "" // Puedes establecer un valor predeterminado si lo deseas, por ejemplo, una imagen por defecto.
+      },
+      estado: {
+        type: Number,
+        required: true
+      }
+    });
 
 module.exports = mongoose.model('Service', serviceSchema);
