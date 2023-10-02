@@ -6,31 +6,35 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    apellidoPaterno: {
+        type: String,
+        required: true
+    },
+    apellidoMaterno: {
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true,
         unique: true
     },
+    telefono: {
+        type: String,
+        required: true
+    },
     password: {
         type: String,
         required: true,
     },
-    fotoPerfil: {
+    imagenDePerfil: {
         type: String,
         default: ""
     },
-    descripcion: {
-        type: String,
-        default: ""
+    calificacion: {
+        type: number,
+        ref: true,
     },
-    calificaciones: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Qualification'
-    }],
-    localizacion: {
-        type: String,
-        default: ""
-    }
 });
 
 module.exports = mongoose.model('User', userSchema);
