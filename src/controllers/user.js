@@ -72,10 +72,13 @@ getAllUsers = async (req, res) => {
 
 // GET: Leer todos los usuarios
 getUserById = async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     try {
-        const users = await User.findById(id);
-        res.json(users);
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
