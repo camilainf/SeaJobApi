@@ -1,6 +1,6 @@
 const Service = require("../models/service");
 
-// POST: Crear un nuevo servicio
+// POST: Crear un nuevo servicio.
 createService = async (req, res) => {
     console.log("POST: createService URL: /api/services");
     const service = new Service({
@@ -15,6 +15,17 @@ createService = async (req, res) => {
     }
 };
 
+// // GET: Obtener todos los servicios.
+getAllServices = async (req, res) => {
+    try {
+        const services = await Service.find();
+        res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
-    createService
+    createService,
+    getAllServices
 };
