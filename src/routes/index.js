@@ -8,8 +8,10 @@ router.use((req, res, next) => {
 
 const userRoutes = require('./user');
 const serviceRoutes = require('./service');
+const categoryRoutes = require('./category');
 
 router.use('/users', userRoutes);
 router.use('/services', serviceRoutes);
+router.use('/categories', categoryRoutes);
 
 module.exports = router;

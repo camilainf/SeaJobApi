@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
 
-const categorySchema = new Schema({
+const categorySchema = new mongoose.Schema({
     nombre: {
         type: String,
         required: true
     },
     imagen:{
         type: String,
-        required: true
+        default: ""
     }
 });
 
