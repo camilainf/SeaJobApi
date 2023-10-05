@@ -25,7 +25,23 @@ getAllServices = async (req, res) => {
     }
 };
 
+// GET: Obtener servicios por categoría.
+getServicesByCategory = async (req, res) => {
+    const categoria = req.query.categoria;
+    if (!categoria) {
+        return res.status(400).json({ message: "La categoría es requerida." });
+    }
+
+    try {
+        const services = await Service.find({ categoria: categoria });
+        res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createService,
-    getAllServices
+    getAllServices,
+    getServicesByCategory
 };
