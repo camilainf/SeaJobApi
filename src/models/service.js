@@ -42,7 +42,11 @@ const serviceSchema = new Schema({
   estado: {
     type: Number,
     required: true
-  }
+  },
+  fechaCreacion: {
+    type: Date,
+    default: Date.now
+  },
 });
 
 module.exports = mongoose.model('Service', serviceSchema);
