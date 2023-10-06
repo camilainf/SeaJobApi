@@ -40,8 +40,26 @@ getServicesByCategory = async (req, res) => {
     }
 };
 
+// GET: Obtener los últimos servicios publicados.
+getLastServices = async (req, res) => {
+    const limit = 5; // Número de servicios a devolver por solicitud
+    const skip = Number(req.query.skip) || 0; // Número de servicios a omitir (para paginación)
+
+    try {
+        const services = await Service.find()
+            .select('id nombreServicio fechaCreacion descripcion imagen categoria fechaSolicitud idCreador') // Selecciona solo los campos necesarios
+            .sort({ fechaCreacion: -1 }) // Ordena de menor a mayor fecha de creación
+            .skip(skip)
+            .limit(limit);
+        res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createService,
     getAllServices,
-    getServicesByCategory
+    getServicesByCategory,
+    getLastServices
 };
