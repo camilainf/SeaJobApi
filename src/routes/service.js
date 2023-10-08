@@ -6,5 +6,7 @@ router.post('/', serviceController.createService);
 router.get('/', serviceController.getAllServices);
 router.get('/byCategory', serviceController.getServicesByCategory);
 router.get('/lastServices', serviceController.getLastServices);
-
+router.get('/byUser', serviceController.getServicesByUser);
+router.get('/:id', serviceController.getServiceById);
+router.patch('/:id', serviceController.updateServiceStatus);
 module.exports = router;

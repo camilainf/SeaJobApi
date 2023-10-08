@@ -57,9 +57,54 @@ getLastServices = async (req, res) => {
     }
 };
 
+getServicesByUser = async (req, res) => {
+    try {
+        const services = await Service.find({ idCreador: req.query.idCreador });
+        res.json(services);
+    }catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+getServiceById = async (req, res) => {
+    try {
+        const service = await Service.findById(req.params.id);
+        res.json(service);
+        console.log('Servicio buscado',service)
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+updateServiceStatus = async (req, res) => {
+    const { id } = req.params;
+    const { estado } = req.body; // Cambiar 'estado' a 'status'
+
+    try {
+        // Validación de datos (puedes agregar más validaciones según tus necesidades)
+        if (typeof estado !== 'number') {
+            return res.status(400).json({ message: "El estado debe ser un número válido." });
+        }
+
+        const service = await Service.updateOne({ _id: id }, { $set: { estado } });
+
+        if (!service) {
+            return res.status(404).json({ message: "Servicio no encontrado." });
+        }
+
+        // Puedes devolver una respuesta 200 OK o el objeto actualizado según tus necesidades.
+        res.status(200).json(service);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
 module.exports = {
     createService,
     getAllServices,
     getServicesByCategory,
-    getLastServices
+    getLastServices,
+    getServicesByUser,
+    getServiceById,
+    updateServiceStatus,
 };
