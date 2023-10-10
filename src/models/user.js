@@ -32,8 +32,8 @@ const userSchema = new mongoose.Schema({
         default: ""
     },
     calificacion: {
-        type: Number,
-    },
+        type: [Number]
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);

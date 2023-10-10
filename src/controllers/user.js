@@ -64,6 +64,9 @@ createUser = async (req, res) => {
 getAllUsers = async (req, res) => {
     try {
         const users = await User.find();
+        if (!users) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -92,17 +95,58 @@ updateUser = async (req, res) => {
 
     try {
         const user = await User.updateOne({ _id: id }, { $set: {name, email, password} })
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+updateCalificationUser = async (req,res) => {
+    const id = req.params.id;
+
+    // Comprueba si la calificación es nula o no está definida
+    if (req.body.calificacion === null || req.body.calificacion === undefined) {
+        return res.status(400).json({ message: 'La calificación no puede ser nula.' });
+    }
+
+    try {
+        // Encuentra al usuario por su ID
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Añade la nueva calificación al array de calificaciones
+        user.calificacion.push(req.body.calificacion);
+
+        // Calcula el promedio
+        const avgCalificacion = user.calificacion.reduce((acc, curr) => acc + curr, 0) / user.calificacion.length;
+
+        // Actualiza el documento en la base de datos con el nuevo array y el promedio
+        const updatedUser = await User.updateOne(
+            { _id: id }, 
+            { $set: { calificacion: user.calificacion } }
+        );
+
+        res.json({ 
+            message: 'Calificación actualizada con éxito', 
+            averageCalification: avgCalificacion 
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 
 module.exports = {
     createUser,
     getAllUsers,
     getUserById,
     updateUser,
-    loginUser
+    loginUser,
+    updateCalificationUser,
 };
 

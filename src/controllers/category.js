@@ -13,7 +13,6 @@ getAllCategories = async (req, res) => {
 
 // POST: Crear una nueva categoría
 createCategory = async (req, res) => {
-    console.log("POST: create URL: /api/categories");
     const category = new Category({
         ...req.body,
     });
