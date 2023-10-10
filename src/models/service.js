@@ -47,6 +47,14 @@ const serviceSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  clickCount: {
+    type: Number,
+    default: 0
+  },
+  lastClickDate: {
+    type: Date,
+    default: null
+  }
 });
 
 module.exports = mongoose.model('Service', serviceSchema);

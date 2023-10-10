@@ -66,7 +66,7 @@ getServicesByUser = async (req, res) => {
     try {
         const services = await Service.find({ idCreador: req.query.idCreador });
         res.json(services);
-    }catch (error) {
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
@@ -74,7 +74,7 @@ getServiceById = async (req, res) => {
     try {
         const service = await Service.findById(req.params.id);
         res.json(service);
-        console.log('Servicio buscado',service)
+        console.log('Servicio buscado', service)
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -103,6 +103,41 @@ updateServiceStatus = async (req, res) => {
     }
 }
 
+incrementClickCount = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const service = await Service.findById(id);
+        if (!service) {
+            return res.status(404).json({ message: "Servicio no encontrado." });
+        }
+
+        service.clickCount += 1;
+        service.lastClickDate = new Date();
+        await service.save();
+
+        res.status(200).json(service);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+getFeaturedServicesOfWeek = async (req, res) => {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    try {
+        const services = await Service.find({
+            lastClickDate: { $gte: oneWeekAgo }
+        })
+        .sort({ clickCount: -1 })
+        .limit(5);
+
+        res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports = {
     createService,
@@ -112,4 +147,6 @@ module.exports = {
     getServicesByUser,
     getServiceById,
     updateServiceStatus,
+    incrementClickCount,
+    getFeaturedServicesOfWeek
 };
