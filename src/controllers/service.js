@@ -40,14 +40,18 @@ getServicesByCategory = async (req, res) => {
     }
 };
 
-// GET: Obtener los últimos servicios publicados.
+// GET: Obtener los últimos servicios publicados y filtrarlos por categoría siesque viene en la query de la url.
 getLastServices = async (req, res) => {
     const limit = 5; // Número de servicios a devolver por solicitud
     const skip = Number(req.query.skip) || 0; // Número de servicios a omitir (para paginación)
+    const categoria = req.query.categoria; // Recupera la categoría de la consulta
+
+    // Define el objeto de consulta. Si se proporciona una categoría, incluirla en el filtro.
+    const query = categoria ? { categoria } : {};
 
     try {
-        const services = await Service.find()
-            .select('id nombreServicio fechaCreacion descripcion imagen categoria fechaSolicitud idCreador') // Selecciona solo los campos necesarios
+        const services = await Service.find(query)
+            .select('id nombreServicio fechaCreacion descripcion imagen categoria fechaSolicitud idCreador direccion') // Selecciona solo los campos necesarios
             .sort({ fechaCreacion: -1 }) // Ordena de menor a mayor fecha de creación
             .skip(skip)
             .limit(limit);
@@ -56,6 +60,7 @@ getLastServices = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 getServicesByUser = async (req, res) => {
     try {
