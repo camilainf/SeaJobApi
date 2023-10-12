@@ -38,7 +38,7 @@ getImage = (req, res) => {
     const fileId = req.params.id;
     console.log(fileId)
     console.log(gfs.files)
-    gfs.files.find({ _id: new mongoose.Types.ObjectId(fileId) }, (err, file) => {
+    gfs.files.f({ _id: new mongoose.Types.ObjectId(fileId) }, (err, file) => {
 
         console.log("entra aqui")
         if (err) {
