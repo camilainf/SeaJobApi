@@ -15,4 +15,4 @@ app.use('/api', allRoutes);
 // Iniciar Base de datos
 initDb();
 
-app.listen(port, () => console.log(`server listning to port ${port}`));
+app.listen(port, '0.0.0.0', () => console.log(`server listening on ${port}`));
