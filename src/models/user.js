@@ -37,7 +37,11 @@ const userSchema = new mongoose.Schema({
     },
     calificacion: {
         type: [Number]
-    }
+    },
+    profileImageId: {
+        type: String,
+        default: ""
+    },
 });
 
 module.exports = mongoose.model('User', userSchema);
