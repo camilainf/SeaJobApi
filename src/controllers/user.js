@@ -103,6 +103,7 @@ updateUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 updateCalificationUser = async (req,res) => {
     const id = req.params.id;
 
@@ -140,6 +141,26 @@ updateCalificationUser = async (req,res) => {
     }
 }
 
+// PUT: Actualizar la foto de perfil de un usuario
+updateUserProfilePic = async (req, res) => {
+    const { id } = req.params;
+    const { imageUrl } = req.body;
+    console.log("IMAGEN URL", imageUrl);
+
+    if (!imageUrl) {
+        return res.status(400).json({ message: 'La URL de la imagen es requerida.' });
+    }
+
+    try {
+        const updatedUser = await User.updateOne({ _id: id }, { $set: { imagenDePerfil: imageUrl } });
+        if (updatedUser.nModified === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado o no se realizó ninguna modificación.' });
+        }
+        res.json({ message: 'Foto de perfil actualizada con éxito.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports = {
     createUser,
@@ -148,5 +169,6 @@ module.exports = {
     updateUser,
     loginUser,
     updateCalificationUser,
+    updateUserProfilePic,
 };
 
