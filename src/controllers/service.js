@@ -1,4 +1,5 @@
 const Service = require("../models/service");
+const Offer = require("../models/offer");
 
 // POST: Crear un nuevo servicio.
 createService = async (req, res) => {
@@ -78,6 +79,27 @@ getServiceById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+const getServicesAcceptedByUser = async (req, res) => {
+    console.log('OBTENIDO POR PARAMS', req.params.id);   
+    try {
+        const userId = req.params.id; // Asumo que pasas el ID del usuario como parámetro en la URL
+
+        // Buscar todas las ofertas aceptadas por ese usuario
+        const acceptedOffers = await Offer.find({ idCreadorOferta: userId, estaEscogida: true });
+
+        // Obtener solo los IDs de los servicios de esas ofertas
+        const serviceIds = acceptedOffers.map(offer => offer.idServicio);
+
+        // Buscar los servicios que corresponden a esos IDs
+        const services = await Service.find({ '_id': { $in: serviceIds } });
+
+        // Enviar esos servicios como respuesta
+        res.json(services);
+
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener los servicios.", error: error.message });
+    }
+}
 
 updateServiceStatus = async (req, res) => {
     const { id } = req.params;
@@ -147,5 +169,6 @@ module.exports = {
     getServiceById,
     updateServiceStatus,
     incrementClickCount,
-    getFeaturedServicesOfWeek
+    getFeaturedServicesOfWeek,
+    getServicesAcceptedByUser
 };

@@ -11,6 +11,6 @@ router.get('/topOfWeek', serviceController.getFeaturedServicesOfWeek);
 router.get('/:id', serviceController.getServiceById);
 router.patch('/:id', serviceController.updateServiceStatus);
 router.post('/incrementClick/:id', serviceController.incrementClickCount);
-
+router.get('/acceptedByUser/:id', serviceController.getServicesAcceptedByUser);
 
 module.exports = router;
