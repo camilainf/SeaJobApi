@@ -97,7 +97,7 @@ acceptAnOffer = async (req, res) => {
 
     res.status(201).json({ message: "Oferta aceptada y servicio actualizado correctamente." });
   } catch (error) {
-    a
+    
     res.status(500).json({ message: error.message });
   }
 };
