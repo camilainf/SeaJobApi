@@ -89,20 +89,20 @@ getUserById = async (req, res) => {
 };
 
 // PUT: Actualizar un usuario
-updateUser = async (req, res) => {
-    const { id } = req.params;
-    const { nombre, email, password } = req.body;
+// updateUser = async (req, res) => {
+//     const { id } = req.params;
+//     const { nombre, email, password } = req.body;
 
-    try {
-        const user = await User.updateOne({ _id: id }, { $set: {nombre, email, password} })
-        if (!user) {
-            return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+//     try {
+//         const user = await User.updateOne({ _id: id }, { $set: {nombre, email, password} })
+//         if (!user) {
+//             return res.status(404).json({ message: 'Usuario no encontrado' });
+//         }
+//         res.json(user);
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// };
 
 updateCalificationUser = async (req,res) => {
     const id = req.params.id;
@@ -161,6 +161,38 @@ updateUserProfilePic = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// PUT: Actualizar un usuario
+updateUser = async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
+
+    // No deberíamos permitir que el usuario actualice directamente algunos campos sensibles como 'password'.
+    if (updates.password) {
+        return res.status(400).json({ message: 'No se permite la actualización directa de la contraseña.' });
+    }
+
+    try {
+        // Encuentra al usuario por ID
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Actualiza cada campo enviado en la solicitud
+        Object.keys(updates).forEach((update) => {
+            user[update] = updates[update];
+        });
+
+        // Guarda el usuario actualizado en la base de datos
+        const updatedUser = await user.save();
+
+        res.json(updatedUser);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 module.exports = {
     createUser,
