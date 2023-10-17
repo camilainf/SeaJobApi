@@ -20,7 +20,29 @@ getValorationByIdService = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+updateValoration = async (req, res) => {
+  const { idValoracion, dueñoValoro, trabajadorValoro } = req.body;
+  try {
+    const valoration = await Valoration.findById(idValoracion);
+    if (!valoration) {
+      return res.status(404).json({ message: 'Valoración no encontrada' });
+    }
+    if (dueñoValoro !== null && dueñoValoro !== undefined) {
+      valoration.dueñoValoro = dueñoValoro;
+    }
+    if (trabajadorValoro !== null && trabajadorValoro !== undefined) {
+      valoration.trabajadorValoro = trabajadorValoro;
+    }
+    const updatedValoration = await valoration.save();
+    res.json(updatedValoration);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createValoration,
-  getValorationByIdService
+  getValorationByIdService,
+  updateValoration  // Exporta la nueva función
 };

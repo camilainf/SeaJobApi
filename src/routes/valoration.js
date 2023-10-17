@@ -4,7 +4,7 @@ const valorationController = require('../controllers/valoration');
 
 router.post('/', valorationController.createValoration);
 router.get('/:id', valorationController.getValorationByIdService);
-//router.patch('/actualizarEstado/:id', valorationController.);
+router.patch('/', valorationController.updateValoration);
 
 
 module.exports = router;
