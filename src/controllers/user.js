@@ -88,22 +88,6 @@ getUserById = async (req, res) => {
     
 };
 
-// PUT: Actualizar un usuario
-// updateUser = async (req, res) => {
-//     const { id } = req.params;
-//     const { nombre, email, password } = req.body;
-
-//     try {
-//         const user = await User.updateOne({ _id: id }, { $set: {nombre, email, password} })
-//         if (!user) {
-//             return res.status(404).json({ message: 'Usuario no encontrado' });
-//         }
-//         res.json(user);
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// };
-
 updateCalificationUser = async (req,res) => {
     const id = req.params.id;
 
