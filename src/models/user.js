@@ -37,7 +37,15 @@ const userSchema = new mongoose.Schema({
     },
     calificacion: {
         type: [Number]
-    }
+    },
+    isActive:{
+        type: Boolean,
+        default: true,
+    },
+    isAdmin:{
+        type: Boolean,
+        default: false,
+    },
 });
 
 module.exports = mongoose.model('User', userSchema);
