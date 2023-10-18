@@ -79,6 +79,7 @@ getServiceById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
 const getServicesAcceptedByUser = async (req, res) => {
     try {
         const userId = req.params.id; // Asumo que pasas el ID del usuario como parámetro en la URL
@@ -150,10 +151,36 @@ getFeaturedServicesOfWeek = async (req, res) => {
         const services = await Service.find({
             lastClickDate: { $gte: oneWeekAgo }
         })
-        .sort({ clickCount: -1 })
-        .limit(5);
+            .sort({ clickCount: -1 })
+            .limit(5);
 
         res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// PUT: Actualizar un servicio
+updateServiceById = async (req, res) => {
+    const { id } = req.params;
+    const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
+
+    try {
+        // Encuentra al servicio por ID
+        const service = await Service.findById(id);
+        if (!service) {
+            return res.status(404).json({ message: 'Servicio no encontrado' });
+        }
+
+        // Actualiza cada campo enviado en la solicitud
+        Object.keys(updates).forEach((update) => {
+            service[update] = updates[update];
+        });
+
+        // Guarda el servicio actualizado en la base de datos
+        const updatedService = await service.save();
+
+        res.status(200).json(updatedService);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -169,5 +196,6 @@ module.exports = {
     updateServiceStatus,
     incrementClickCount,
     getFeaturedServicesOfWeek,
-    getServicesAcceptedByUser
+    getServicesAcceptedByUser,
+    updateServiceById
 };
