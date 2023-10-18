@@ -106,9 +106,11 @@ getUserById = async (req, res) => {
 
 updateCalificationUser = async (req,res) => {
     const id = req.params.id;
+    const valoracion = req.body.calificacion;
+    console.log("entra a funcion de calificacion", id, valoracion )
 
     // Comprueba si la calificación es nula o no está definida
-    if (req.body.calificacion === null || req.body.calificacion === undefined) {
+    if (valoracion === null ||valoracion === undefined) {
         return res.status(400).json({ message: 'La calificación no puede ser nula.' });
     }
 
