@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const Offer = require('../models/offer');
 loginUser = async (req, res) => {
     const { email, password } = req.body;
 
@@ -179,6 +179,37 @@ updateUser = async (req, res) => {
     }
 };
 
+getMoneyEarnUser = async (req, res) => {
+    const { id } = req.params;  // Id del usuario
+    try {
+        // Pipeline de agregación
+        const pipeline = [
+            // Filtrar ofertas donde el idCreadorOferta es el usuario y estaEscogida es true
+            { $match: { idCreadorOferta: id, estaEscogida: true } },
+            // Agrupar por null para obtener una suma total, ya que no estamos agrupando por ningún campo específico
+            {
+                $group: {
+                    _id: null,
+                    totalEarnings: { $sum: '$montoOfertado' }
+                }
+            }
+        ];
+
+        // Ejecutar la agregación
+        const result = await Offer.aggregate(pipeline);
+
+        // Verificar si se obtuvo un resultado
+        if (result.length > 0) {
+            const totalEarnings = result[0].totalEarnings;
+            res.json({ totalEarnings });
+        } else {
+            res.json({ totalEarnings: 0 });
+        }
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 module.exports = {
     createUser,
@@ -188,5 +219,6 @@ module.exports = {
     loginUser,
     updateCalificationUser,
     updateUserProfilePic,
+    getMoneyEarnUser,
 };
 
