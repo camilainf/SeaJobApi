@@ -10,8 +10,8 @@ router.get('/byUser', serviceController.getServicesByUser);
 router.get('/topOfWeek', serviceController.getFeaturedServicesOfWeek);
 router.get('/:id', serviceController.getServiceById);
 router.put('/:id', serviceController.updateService);
-router.patch('/:id', serviceController.updateServiceStatus);
-router.post('/incrementClick/:id', serviceController.incrementClickCount);
 router.delete('/:id', serviceController.deleteService);
+router.post('/incrementClick/:id', serviceController.incrementClickCount);
+
 
 module.exports = router;
