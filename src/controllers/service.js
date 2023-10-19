@@ -1,5 +1,6 @@
 const Service = require("../models/service");
 const Offer = require("../models/offer");
+const Valoration = require("../models/valoration");
 
 // POST: Crear un nuevo servicio.
 createService = async (req, res) => {
@@ -161,7 +162,7 @@ getFeaturedServicesOfWeek = async (req, res) => {
 };
 
 // PUT: Actualizar un servicio
-updateServiceById = async (req, res) => {
+updateService = async (req, res) => {
     const { id } = req.params;
     const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
 
@@ -186,6 +187,30 @@ updateServiceById = async (req, res) => {
     }
 };
 
+// DELETE: Eliminar un servicio y todos los registros asociados.
+deleteService = async (req, res) => {
+    const { id } = req.params; // El ID del servicio a eliminar.
+
+    try {
+        // Encuentra y elimina el servicio.
+        const service = await Service.findByIdAndRemove(id);
+        if (!service) {
+            return res.status(404).json({ message: 'Servicio no encontrado' });
+        }
+
+        // Elimina todas las ofertas asociadas con este servicio.
+        await Offer.deleteMany({ idServicio: id });
+
+        // Elimina todas las valoraciones asociadas con este servicio.
+        await Valoration.deleteMany({ idServicio: id });
+
+        // Responde que la eliminación fue exitosa.
+        res.status(200).json({ message: 'Servicio, ofertas y valoraciones asociadas eliminadas con éxito.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createService,
     getAllServices,
@@ -197,5 +222,6 @@ module.exports = {
     incrementClickCount,
     getFeaturedServicesOfWeek,
     getServicesAcceptedByUser,
-    updateServiceById
+    updateService,
+    deleteService
 };
