@@ -80,7 +80,7 @@ getServiceById = async (req, res) => {
     }
 };
 
-const getServicesAcceptedByUser = async (req, res) => {
+getServicesAcceptedByUser = async (req, res) => {
     try {
         const userId = req.params.id; // Asumo que pasas el ID del usuario como parámetro en la URL
 
