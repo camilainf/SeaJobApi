@@ -63,7 +63,7 @@ createUser = async (req, res) => {
 // GET: Leer todos los usuarios
 getAllUsers = async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find({ isActive: true });
         if (!users) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
@@ -85,16 +85,16 @@ getUserById = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-    
+
 };
 
-updateCalificationUser = async (req,res) => {
+updateCalificationUser = async (req, res) => {
     const id = req.params.id;
     const valoracion = req.body.calificacion;
-    
+
 
     // Comprueba si la calificación es nula o no está definida
-    if (valoracion === null ||valoracion === undefined) {
+    if (valoracion === null || valoracion === undefined) {
         return res.status(400).json({ message: 'La calificación no puede ser nula.' });
     }
 
@@ -113,13 +113,13 @@ updateCalificationUser = async (req,res) => {
 
         // Actualiza el documento en la base de datos con el nuevo array y el promedio
         const updatedUser = await User.updateOne(
-            { _id: id }, 
+            { _id: id },
             { $set: { calificacion: user.calificacion } }
         );
 
-        res.json({ 
-            message: 'Calificación actualizada con éxito', 
-            averageCalification: avgCalificacion 
+        res.json({
+            message: 'Calificación actualizada con éxito',
+            averageCalification: avgCalificacion
         });
 
     } catch (error) {
@@ -163,6 +163,11 @@ updateUser = async (req, res) => {
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Verifica si el usuario está activo
+        if (!(user.isActive)) {
+            return res.status(400).json({ message: 'No se puede actualizar una cuenta desactivada.' });
         }
 
         // Actualiza cada campo enviado en la solicitud
@@ -211,6 +216,23 @@ getMoneyEarnUser = async (req, res) => {
     }
 };
 
+deleteUser = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Encuentra al usuario y actualiza el campo 'isActive'
+        const deletedUser = await User.findByIdAndUpdate(id, { isActive: false }, { new: true });
+
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        res.json({ message: 'Cuenta desactivada con éxito.' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createUser,
     getAllUsers,
@@ -220,5 +242,6 @@ module.exports = {
     updateCalificationUser,
     updateUserProfilePic,
     getMoneyEarnUser,
+    deleteUser
 };
 
