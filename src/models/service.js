@@ -41,7 +41,8 @@ const serviceSchema = new Schema({
   },
   estado: {
     type: Number,
-    required: true
+    required: true,
+    default: 1
   },
   fechaCreacion: {
     type: Date,
