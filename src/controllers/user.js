@@ -2,11 +2,18 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Offer = require('../models/offer');
+const Service = require('../models/service');
+
 loginUser = async (req, res) => {
+    console.log("Login");
     const { email, password } = req.body;
 
     try {
         const user = await User.findOne({ email });
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: 'Esta cuenta ha sido desactivada.' });
+        }
 
         if (!user) {
             return res.status(400).json({ message: 'Usuario o contraseña incorrecta.' });
@@ -217,18 +224,44 @@ getMoneyEarnUser = async (req, res) => {
 };
 
 deleteUser = async (req, res) => {
-    const { id } = req.params;
+    console.log("deleteUser");
+    const { id } = req.params;  // Id del usuario
 
     try {
-        // Encuentra al usuario y actualiza el campo 'isActive'
-        const deletedUser = await User.findByIdAndUpdate(id, { isActive: false }, { new: true });
-
-        if (!deletedUser) {
+        // Desactivar el usuario
+        const user = await User.findByIdAndUpdate(id, { isActive: false }, { new: true });
+        if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        res.json({ message: 'Cuenta desactivada con éxito.' });
+        // Encontrar todas las ofertas aceptadas por el usuario para servicios con estado específico
+        const affectedOffers = await Offer.find({
+            idCreadorOferta: id,
+            estaEscogida: true
+        }).populate('idServicio');
+
+        // Filtrar los servicios que están en un estado específico (mayor a 1 y menor a 4)
+        const servicesToUpdate = affectedOffers.filter(offer => 
+            offer.idServicio.estado > 1 && offer.idServicio.estado < 4
+        ).map(offer => offer.idServicio._id);
+
+        // Actualizar el estado de los servicios afectados
+        await Service.updateMany(
+            { _id: { $in: servicesToUpdate } },
+            { $set: { estado: 1 } }  // restablecer el estado a "En oferta"
+        );
+
+        // Desactivar los servicios que el usuario ha creado.
+        await Service.updateMany(
+            { idCreador: id },
+            { $set: { isOwnerActive: false } }  // desactivar estos servicios
+        );
+
+        // Opcional: aquí ver si manejar la lógica para notificar a los usuarios afectados o realizar otras actualizaciones necesarias.
+
+        res.json({ message: 'Usuario desactivado y servicios actualizados con éxito.' });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: error.message });
     }
 };
