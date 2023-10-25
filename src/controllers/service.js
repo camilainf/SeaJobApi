@@ -20,7 +20,7 @@ createService = async (req, res) => {
 // // GET: Obtener todos los servicios.
 getAllServices = async (req, res) => {
     try {
-        const services = await Service.find();
+        const services = await Service.find({ isOwnerActive: true });
         res.json(services);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -35,7 +35,7 @@ getServicesByCategory = async (req, res) => {
     }
 
     try {
-        const services = await Service.find({ categoria: categoria });
+        const services = await Service.find({ categoria: categoria, isOwnerActive: true });
         res.json(services);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -48,8 +48,8 @@ getLastServices = async (req, res) => {
     const skip = Number(req.query.skip) || 0; // Número de servicios a omitir (para paginación)
     const categoria = req.query.categoria; // Recupera la categoría de la consulta
 
-    // Define el objeto de consulta. Si se proporciona una categoría, incluirla en el filtro.
-    const query = categoria ? { categoria } : {};
+    // Define el objeto de consulta. Si se proporciona una categoría, incluirla en el filtro. Además no incluir los servicios de usuarios inactivos
+    const query = categoria ? { categoria, isOwnerActive: true } : { isOwnerActive: true };
 
     try {
         const services = await Service.find(query)
@@ -63,18 +63,21 @@ getLastServices = async (req, res) => {
     }
 };
 
-
 getServicesByUser = async (req, res) => {
     try {
-        const services = await Service.find({ idCreador: req.query.idCreador });
+        const services = await Service.find({ idCreador: req.query.idCreador, isOwnerActive: true });
         res.json(services);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 }
+
 getServiceById = async (req, res) => {
     try {
-        const service = await Service.findById(req.params.id);
+        const service = await Service.findOne({ _id: req.params.id, isOwnerActive: true });
+        if (!service) {
+            return res.status(404).json({ message: "Servicio no encontrado o inactivo." });
+        }
         res.json(service);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -83,7 +86,7 @@ getServiceById = async (req, res) => {
 
 getServicesAcceptedByUser = async (req, res) => {
     try {
-        const userId = req.params.id; // Asumo que pasas el ID del usuario como parámetro en la URL
+        const userId = req.params.id;
 
         // Buscar todas las ofertas aceptadas por ese usuario
         const acceptedOffers = await Offer.find({ idCreadorOferta: userId, estaEscogida: true });
@@ -92,7 +95,7 @@ getServicesAcceptedByUser = async (req, res) => {
         const serviceIds = acceptedOffers.map(offer => offer.idServicio);
 
         // Buscar los servicios que corresponden a esos IDs
-        const services = await Service.find({ '_id': { $in: serviceIds } });
+        const services = await Service.find({ '_id': { $in: serviceIds }, 'isOwnerActive': true });
 
         // Enviar esos servicios como respuesta
         res.json(services);
@@ -107,18 +110,18 @@ updateServiceStatus = async (req, res) => {
     const { estado } = req.body; // Cambiar 'estado' a 'status'
 
     try {
-        // Validación de datos (puedes agregar más validaciones según tus necesidades)
+        const service = await Service.findOne({ _id: id, isOwnerActive: true });
+        if (!service) {
+            return res.status(404).json({ message: "Servicio no encontrado o inactivo." });
+        }
+
         if (typeof estado !== 'number') {
             return res.status(400).json({ message: "El estado debe ser un número válido." });
         }
 
-        const service = await Service.updateOne({ _id: id }, { $set: { estado } });
+        service.estado = estado;
+        await service.save();
 
-        if (!service) {
-            return res.status(404).json({ message: "Servicio no encontrado." });
-        }
-
-        // Puedes devolver una respuesta 200 OK o el objeto actualizado según tus necesidades.
         res.status(200).json(service);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -129,9 +132,9 @@ incrementClickCount = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const service = await Service.findById(id);
+        const service = await Service.findOne({ _id: id, isOwnerActive: true });
         if (!service) {
-            return res.status(404).json({ message: "Servicio no encontrado." });
+            return res.status(404).json({ message: "Servicio no encontrado o inactivo." });
         }
 
         service.clickCount += 1;
@@ -150,7 +153,8 @@ getFeaturedServicesOfWeek = async (req, res) => {
 
     try {
         const services = await Service.find({
-            lastClickDate: { $gte: oneWeekAgo }
+            lastClickDate: { $gte: oneWeekAgo },
+            isOwnerActive: true
         })
             .sort({ clickCount: -1 })
             .limit(5);
@@ -164,24 +168,21 @@ getFeaturedServicesOfWeek = async (req, res) => {
 // PUT: Actualizar un servicio
 updateService = async (req, res) => {
     const { id } = req.params;
-    const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
+    const updates = req.body; // Campos que vienen en la solicitud para ser actualizados.
 
     try {
-        // Encuentra al servicio por ID
-        const service = await Service.findById(id);
+        const service = await Service.findOne({ _id: id, isOwnerActive: true });
         if (!service) {
-            return res.status(404).json({ message: 'Servicio no encontrado' });
+            return res.status(404).json({ message: 'Servicio no encontrado o inactivo.' });
         }
 
-        // Actualiza cada campo enviado en la solicitud
         Object.keys(updates).forEach((update) => {
-            service[update] = updates[update];
+            service[update] = updates[update]; // Actualizar campos
         });
 
-        // Guarda el servicio actualizado en la base de datos
-        const updatedService = await service.save();
+        await service.save(); // Se guarda el documento modificado
 
-        res.status(200).json(updatedService);
+        res.status(200).json(service);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -192,20 +193,15 @@ deleteService = async (req, res) => {
     const { id } = req.params; // El ID del servicio a eliminar.
 
     try {
-        // Encuentra y elimina el servicio.
-        const service = await Service.findByIdAndRemove(id);
+        const service = await Service.findOneAndDelete({ _id: id, isOwnerActive: true });
         if (!service) {
-            return res.status(404).json({ message: 'Servicio no encontrado' });
+            return res.status(404).json({ message: 'Servicio no encontrado o inactivo.' });
         }
 
-        // Elimina todas las ofertas asociadas con este servicio.
         await Offer.deleteMany({ idServicio: id });
-
-        // Elimina todas las valoraciones asociadas con este servicio.
         await Valoration.deleteMany({ idServicio: id });
 
-        // Responde que la eliminación fue exitosa.
-        res.status(200).json({ message: 'Servicio, ofertas y valoraciones asociadas eliminadas con éxito.' });
+        res.status(200).json({ message: 'Servicio eliminado con éxito.' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

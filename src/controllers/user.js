@@ -2,11 +2,18 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Offer = require('../models/offer');
+const Service = require('../models/service');
+
 loginUser = async (req, res) => {
+    console.log("Login");
     const { email, password } = req.body;
 
     try {
         const user = await User.findOne({ email });
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: 'Esta cuenta ha sido desactivada.' });
+        }
 
         if (!user) {
             return res.status(400).json({ message: 'Usuario o contraseña incorrecta.' });
@@ -63,7 +70,7 @@ createUser = async (req, res) => {
 // GET: Leer todos los usuarios
 getAllUsers = async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find({ isActive: true });
         if (!users) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
@@ -85,16 +92,16 @@ getUserById = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
-    
+
 };
 
-updateCalificationUser = async (req,res) => {
+updateCalificationUser = async (req, res) => {
     const id = req.params.id;
     const valoracion = req.body.calificacion;
-    
+
 
     // Comprueba si la calificación es nula o no está definida
-    if (valoracion === null ||valoracion === undefined) {
+    if (valoracion === null || valoracion === undefined) {
         return res.status(400).json({ message: 'La calificación no puede ser nula.' });
     }
 
@@ -113,13 +120,13 @@ updateCalificationUser = async (req,res) => {
 
         // Actualiza el documento en la base de datos con el nuevo array y el promedio
         const updatedUser = await User.updateOne(
-            { _id: id }, 
+            { _id: id },
             { $set: { calificacion: user.calificacion } }
         );
 
-        res.json({ 
-            message: 'Calificación actualizada con éxito', 
-            averageCalification: avgCalificacion 
+        res.json({
+            message: 'Calificación actualizada con éxito',
+            averageCalification: avgCalificacion
         });
 
     } catch (error) {
@@ -163,6 +170,11 @@ updateUser = async (req, res) => {
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Verifica si el usuario está activo
+        if (!(user.isActive)) {
+            return res.status(400).json({ message: 'No se puede actualizar una cuenta desactivada.' });
         }
 
         // Actualiza cada campo enviado en la solicitud
@@ -211,6 +223,49 @@ getMoneyEarnUser = async (req, res) => {
     }
 };
 
+deleteUser = async (req, res) => {
+    console.log("deleteUser");
+    const { id } = req.params;  // Id del usuario
+
+    try {
+        // Desactivar el usuario
+        const user = await User.findByIdAndUpdate(id, { isActive: false }, { new: true });
+        if (!user) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        // Encontrar todas las ofertas aceptadas por el usuario para servicios con estado específico
+        const affectedOffers = await Offer.find({
+            idCreadorOferta: id,
+            estaEscogida: true
+        }).populate('idServicio');
+
+        // Filtrar los servicios que están en un estado específico (mayor a 1 y menor a 4)
+        const servicesToUpdate = affectedOffers.filter(offer => 
+            offer.idServicio.estado > 1 && offer.idServicio.estado < 4
+        ).map(offer => offer.idServicio._id);
+
+        // Actualizar el estado de los servicios afectados
+        await Service.updateMany(
+            { _id: { $in: servicesToUpdate } },
+            { $set: { estado: 1 } }  // restablecer el estado a "En oferta"
+        );
+
+        // Desactivar los servicios que el usuario ha creado.
+        await Service.updateMany(
+            { idCreador: id },
+            { $set: { isOwnerActive: false } }  // desactivar estos servicios
+        );
+
+        // Opcional: aquí ver si manejar la lógica para notificar a los usuarios afectados o realizar otras actualizaciones necesarias.
+
+        res.json({ message: 'Usuario desactivado y servicios actualizados con éxito.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createUser,
     getAllUsers,
@@ -220,5 +275,6 @@ module.exports = {
     updateCalificationUser,
     updateUserProfilePic,
     getMoneyEarnUser,
+    deleteUser
 };
 

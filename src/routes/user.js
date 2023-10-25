@@ -10,6 +10,6 @@ router.post('/login', userController.loginUser);
 router.put('/:id/updateProfilePic', userController.updateUserProfilePic);
 router.patch('/uptateCalification/:id', userController.updateCalificationUser);
 router.get('/getMoneyEarnUser/:id', userController.getMoneyEarnUser);
-
+router.patch('/deactivateUser/:id', userController.deleteUser);
 
 module.exports = router;

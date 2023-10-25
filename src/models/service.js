@@ -55,6 +55,10 @@ const serviceSchema = new Schema({
   lastClickDate: {
     type: Date,
     default: null
+  },
+  isOwnerActive: {
+    type: Boolean,
+    default: true
   }
 });
 
