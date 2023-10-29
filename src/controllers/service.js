@@ -1,6 +1,7 @@
 const Service = require("../models/service");
 const Offer = require("../models/offer");
 const Valoration = require("../models/valoration");
+const User = require("../models/user");
 
 // POST: Crear un nuevo servicio.
 createService = async (req, res) => {
@@ -119,11 +120,31 @@ updateServiceStatus = async (req, res) => {
             return res.status(400).json({ message: "El estado debe ser un número válido." });
         }
 
+        if (estado === 4) {
+
+            console.log("ENTRÓ AL ESTADO 4 AQUI");
+
+            const creadorServicio = await User.findOne({_id: service.idCreador});
+            console.log("creadorServicio",creadorServicio);
+
+            const offer = await Offer.findOne({ idServicio: service._id, estaEscogida: true });
+            console.log("offer",offer);
+
+            const creadorOferta = await User.findOne({ _id: offer.idCreadorOferta });
+            console.log("creadorOferta",creadorOferta);
+
+            if ( !creadorServicio.isActive || !creadorOferta.isActive ) {
+                console.log("Alguno de los usuarios creador/ofertador se encuentra inactivo, por lo que se omitirá el proceso de valoración.")
+                estado = 5;
+            }
+        }
+
         service.estado = estado;
         await service.save();
 
         res.status(200).json(service);
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 }

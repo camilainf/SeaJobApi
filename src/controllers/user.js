@@ -241,14 +241,24 @@ deleteUser = async (req, res) => {
         }).populate('idServicio');
 
         // Filtrar los servicios que están en un estado específico (mayor a 1 y menor a 4)
-        const servicesToUpdate = affectedOffers.filter(offer => 
+        const servicesToUpdateSinIniciar = affectedOffers.filter(offer => 
             offer.idServicio.estado > 1 && offer.idServicio.estado < 4
         ).map(offer => offer.idServicio._id);
 
-        // Actualizar el estado de los servicios afectados
+        const servicesToUpdateIniciados = affectedOffers.filter(offer => 
+            offer.idServicio.estado === 4
+        ).map(offer => offer.idServicio._id);
+
+        // Actualizar el estado de los servicios afectados que se encuentran en estado de Oferta a Inicio
         await Service.updateMany(
-            { _id: { $in: servicesToUpdate } },
+            { _id: { $in: servicesToUpdateSinIniciar } },
             { $set: { estado: 1 } }  // restablecer el estado a "En oferta"
+        );
+
+        // Actualizar el estado de los servicios afectados que se encuentran en estado de valoración
+        await Service.updateMany(
+            { _id: { $in: servicesToUpdateIniciados } },
+            { $set: { estado: 6 } }  // Ya no se pueden valorar, entonces se dan como terminados.
         );
 
         // Desactivar los servicios que el usuario ha creado.
