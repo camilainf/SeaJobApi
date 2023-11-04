@@ -5,7 +5,6 @@ const Offer = require('../models/offer');
 const Service = require('../models/service');
 
 loginUser = async (req, res) => {
-    console.log("Login");
     const { email, password } = req.body;
 
     try {
@@ -43,17 +42,17 @@ loginUser = async (req, res) => {
 createUser = async (req, res) => {
     const { email, password } = req.body;
 
-    // Verifica si el correo ya existe
+    // Verificar si el correo ya existe
     const existingUser = await User.findOne({ email });
     if (existingUser) {
         return res.status(400).json({ message: 'El correo ya está en uso.' });
     }
 
-    // Hashea la contraseña
+    // Hashear la contraseña
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Crea el objeto user con la contraseña hasheada
+    // Crear el objeto user con la contraseña hasheada
     const user = new User({
         ...req.body,
         password: hashedPassword
@@ -100,25 +99,25 @@ updateCalificationUser = async (req, res) => {
     const valoracion = req.body.calificacion;
 
 
-    // Comprueba si la calificación es nula o no está definida
+    // Comnprobar si la calificación es nula o no está definida
     if (valoracion === null || valoracion === undefined) {
         return res.status(400).json({ message: 'La calificación no puede ser nula.' });
     }
 
     try {
-        // Encuentra al usuario por su ID
+        // Encontrar al usuario por su ID
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Añade la nueva calificación al array de calificaciones
+        // Añadir la nueva calificación al array de calificaciones
         user.calificacion.push(req.body.calificacion);
 
-        // Calcula el promedio
+        // Calcular el promedio
         const avgCalificacion = user.calificacion.reduce((acc, curr) => acc + curr, 0) / user.calificacion.length;
 
-        // Actualiza el documento en la base de datos con el nuevo array y el promedio
+        // Actualizar el documento en la base de datos con el nuevo array y el promedio
         const updatedUser = await User.updateOne(
             { _id: id },
             { $set: { calificacion: user.calificacion } }
@@ -160,29 +159,29 @@ updateUser = async (req, res) => {
     const { id } = req.params;
     const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
 
-    // No deberíamos permitir que el usuario actualice directamente algunos campos sensibles como 'password'.
+    // No se debe permitir que el usuario actualice directamente algunos campos sensibles como 'password'.
     if (updates.password) {
         return res.status(400).json({ message: 'No se permite la actualización directa de la contraseña.' });
     }
 
     try {
-        // Encuentra al usuario por ID
+        // Encontrar al usuario por ID
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
-        // Verifica si el usuario está activo
+        // Verificar si el usuario está activo
         if (!(user.isActive)) {
             return res.status(400).json({ message: 'No se puede actualizar una cuenta desactivada.' });
         }
 
-        // Actualiza cada campo enviado en la solicitud
+        // Actualizar cada campo enviado en la solicitud
         Object.keys(updates).forEach((update) => {
             user[update] = updates[update];
         });
 
-        // Guarda el usuario actualizado en la base de datos
+        // Guardar el usuario actualizado en la base de datos
         const updatedUser = await user.save();
 
         res.json(updatedUser);

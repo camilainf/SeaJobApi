@@ -26,7 +26,7 @@ createCategory = async (req, res) => {
 };
 
 // GET: Obtener las 4 categorías más populares.
-// Se define una categoría como popular dependiendo de cuantos servicios son definidos por esta.
+// Se define una categoría como popular dependiendo de cuantos servicios son definidos con esta.
 getPopularCategories = async (req, res) => {
     try {
         // Agrupar los servicios por categoría y contar cuántos hay en cada una
@@ -45,19 +45,34 @@ getPopularCategories = async (req, res) => {
             }
         ]);
 
-        // Ahora, vamos a buscar los detalles de estas categorías en la colección Category
-        let categoryDetails = await Category.find({
-            nombre: { $in: mostPopularCategories.map(cat => cat._id) }
-        });
+        let categoryDetails = [];
 
-        // Mapear el orden correcto basado en mostPopularCategories
-        categoryDetails = mostPopularCategories.map(popularCategory => {
-            const detail = categoryDetails.find(detail => detail.nombre === popularCategory._id);
-            return {
-                ...detail._doc,
-                count: popularCategory.count
-            };
-        });
+        if (mostPopularCategories.length > 0) {
+            // Obtener detalles de las categorías más populares
+            categoryDetails = await Category.find({
+                nombre: { $in: mostPopularCategories.map(cat => cat._id) }
+            });
+
+            // Mapear el orden correcto basado en mostPopularCategories
+            categoryDetails = mostPopularCategories.map(popularCategory => {
+                const detail = categoryDetails.find(detail => detail.nombre === popularCategory._id);
+                return {
+                    ...detail._doc,
+                    count: popularCategory.count
+                };
+            });
+        }
+
+        // Si hay menos de 4 categorías populares, obtener categorías aleatorias para completar
+        if (categoryDetails.length < 4) {
+            const neededRandoms = 4 - categoryDetails.length;
+            const randomCategories = await Category.aggregate([
+                { $match: { nombre: { $nin: categoryDetails.map(cat => cat.nombre) } } },
+                { $sample: { size: neededRandoms } }
+            ]);
+
+            categoryDetails = categoryDetails.concat(randomCategories);
+        }
 
         res.json(categoryDetails);
     } catch (error) {
