@@ -10,18 +10,18 @@ loginUser = async (req, res) => {
     try {
         const user = await User.findOne({ email });
 
-        if (!user.isActive) {
-            return res.status(400).json({ message: 'Esta cuenta ha sido desactivada.' });
+        if (!user) {
+            return res.status(404).json({ message: 'Correo inválido.' });
         }
 
-        if (!user) {
-            return res.status(400).json({ message: 'Usuario o contraseña incorrecta.' });
+        if (!user.isActive) {
+            return res.status(400).json({ message: 'Esta cuenta ha sido desactivada.' });
         }
 
         const validPassword = await bcrypt.compare(password, user.password);
 
         if (!validPassword) {
-            return res.status(400).json({ message: 'Usuario o contraseña incorrecta.' });
+            return res.status(404).json({ message: 'Contraseña incorrecta.' });
         }
 
         // Genera un JWT
