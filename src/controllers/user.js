@@ -191,12 +191,15 @@ updateUser = async (req, res) => {
 };
 
 getMoneyEarnUser = async (req, res) => {
+    const mongoose = require('mongoose');
     const { id } = req.params;  // Id del usuario
+    const objectId = new mongoose.Types.ObjectId(id);
+
     try {
         // Pipeline de agregación
         const pipeline = [
             // Filtrar ofertas donde el idCreadorOferta es el usuario y estaEscogida es true
-            { $match: { idCreadorOferta: id, estaEscogida: true } },
+            { $match: { idCreadorOferta: objectId, estaEscogida: true } },
             // Agrupar por null para obtener una suma total, ya que no estamos agrupando por ningún campo específico
             {
                 $group: {
@@ -240,11 +243,11 @@ deleteUser = async (req, res) => {
         }).populate('idServicio');
 
         // Filtrar los servicios que están en un estado específico (mayor a 1 y menor a 4)
-        const servicesToUpdateSinIniciar = affectedOffers.filter(offer => 
+        const servicesToUpdateSinIniciar = affectedOffers.filter(offer =>
             offer.idServicio.estado > 1 && offer.idServicio.estado < 4
         ).map(offer => offer.idServicio._id);
 
-        const servicesToUpdateIniciados = affectedOffers.filter(offer => 
+        const servicesToUpdateIniciados = affectedOffers.filter(offer =>
             offer.idServicio.estado === 4
         ).map(offer => offer.idServicio._id);
 
