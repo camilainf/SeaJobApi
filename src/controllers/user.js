@@ -5,7 +5,9 @@ const Offer = require('../models/offer');
 const Service = require('../models/service');
 
 loginUser = async (req, res) => {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email.toLowerCase();
 
     try {
         const user = await User.findOne({ email });
@@ -40,7 +42,11 @@ loginUser = async (req, res) => {
 
 // POST: Crear un nuevo usuario
 createUser = async (req, res) => {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+
+    email = email.toLowerCase();
+
+    console.log(email);
 
     // Verificar si el correo ya existe
     const existingUser = await User.findOne({ email });
@@ -55,6 +61,7 @@ createUser = async (req, res) => {
     // Crear el objeto user con la contraseña hasheada
     const user = new User({
         ...req.body,
+        email: email,
         password: hashedPassword
     });
 
@@ -157,11 +164,15 @@ updateUserProfilePic = async (req, res) => {
 // PUT: Actualizar un usuario
 updateUser = async (req, res) => {
     const { id } = req.params;
-    const updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
+    let updates = req.body; // Esto contendrá todos los campos enviados en la solicitud para actualizar
 
     // No se debe permitir que el usuario actualice directamente algunos campos sensibles como 'password'.
     if (updates.password) {
         return res.status(400).json({ message: 'No se permite la actualización directa de la contraseña.' });
+    }
+
+    if (updates.email) {
+        updates.email = updates.email.toLowerCase();
     }
 
     try {
