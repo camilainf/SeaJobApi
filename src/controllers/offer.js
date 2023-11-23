@@ -127,7 +127,7 @@ acceptAnOffer = async (req, res) => {
       throw new Error("Servicio no encontrado o el propietario del servicio no está activo.");
     }
 
-    service.estado = 2; // Asumiendo que '2' es el estado para "oferta aceptada".
+    service.estado = 2;
 
     // 3. Actualizar el monto del servicio con el monto ofertado
     service.monto = offer.montoOfertado;

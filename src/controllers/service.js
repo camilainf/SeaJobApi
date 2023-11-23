@@ -106,6 +106,31 @@ getServicesAcceptedByUser = async (req, res) => {
     }
 }
 
+// GET: Obtener servicios en los que el usuario ha ofertado y que no han sido tomados
+getServicesOfferedByUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Buscar todas las ofertas realizadas por ese usuario
+        const userOffers = await Offer.find({ idCreadorOferta: userId });
+
+        // Obtener solo los IDs de los servicios de esas ofertas
+        const serviceIds = userOffers.map(offer => offer.idServicio);
+
+        // Buscar los servicios que corresponden a esos IDs y que están en estado 1
+        const services = await Service.find({ 
+            '_id': { $in: serviceIds }, 
+            'isOwnerActive': true,
+            'estado': 1
+        });
+
+        res.json(services);
+
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener los servicios.", error: error.message });
+    }
+}
+
 updateServiceStatus = async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body; // Cambiar 'estado' a 'status'
@@ -242,5 +267,6 @@ module.exports = {
     getFeaturedServicesOfWeek,
     getServicesAcceptedByUser,
     updateService,
-    deleteService
+    deleteService,
+    getServicesOfferedByUser
 };
