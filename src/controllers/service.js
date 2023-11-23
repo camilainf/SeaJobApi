@@ -198,7 +198,9 @@ updateService = async (req, res) => {
         }
 
         Object.keys(updates).forEach((update) => {
-            service[update] = updates[update]; // Actualizar campos
+            if (update !== 'idCreador') {
+                service[update] = updates[update];
+            }
         });
 
         await service.save(); // Se guarda el documento modificado
