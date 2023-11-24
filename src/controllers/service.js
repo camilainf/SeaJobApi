@@ -36,7 +36,7 @@ getServicesByCategory = async (req, res) => {
     }
 
     try {
-        const services = await Service.find({ categoria: categoria, isOwnerActive: true });
+        const services = await Service.find({ categoria: categoria, isOwnerActive: true, estado: 1 });
         res.json(services);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -118,8 +118,8 @@ getServicesOfferedByUser = async (req, res) => {
         const serviceIds = userOffers.map(offer => offer.idServicio);
 
         // Buscar los servicios que corresponden a esos IDs y que están en estado 1
-        const services = await Service.find({ 
-            '_id': { $in: serviceIds }, 
+        const services = await Service.find({
+            '_id': { $in: serviceIds },
             'isOwnerActive': true,
             'estado': 1
         });
@@ -130,6 +130,34 @@ getServicesOfferedByUser = async (req, res) => {
         res.status(500).json({ message: "Error al obtener los servicios.", error: error.message });
     }
 }
+
+// GET: Obtener la cantidad de servicios terminados en los que el usuario ha ofertado
+getCompletedServicesCountByUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        // Buscar todas las ofertas aceptadas realizadas por ese usuario
+        const userOffers = await Offer.find({ idCreadorOferta: userId, estaEscogida: true });
+
+        // Obtener solo los IDs de los servicios de esas ofertas
+        const serviceIds = userOffers.map(offer => offer.idServicio);
+
+        // Buscar los servicios que corresponden a esos IDs y que están en estado 5
+        const completedServicesCount = await Service.countDocuments({
+            '_id': { $in: serviceIds },
+            'idCreador': { $ne: userId },
+            'isOwnerActive': true,
+            'estado': 5,
+        });
+
+        console.log("Completed services", completedServicesCount);
+        res.json({ count: completedServicesCount });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener la cantidad de servicios terminados.", error: error.message });
+    }
+}
+
 
 updateServiceStatus = async (req, res) => {
     const { id } = req.params;
@@ -149,16 +177,14 @@ updateServiceStatus = async (req, res) => {
 
             console.log("ENTRÓ AL ESTADO 4 AQUI");
 
-            const creadorServicio = await User.findOne({_id: service.idCreador});
-            console.log("creadorServicio",creadorServicio);
+            const creadorServicio = await User.findOne({ _id: service.idCreador });
+            console.log("creadorServicio", creadorServicio);
 
             const offer = await Offer.findOne({ idServicio: service._id, estaEscogida: true });
-            console.log("offer",offer);
 
             const creadorOferta = await User.findOne({ _id: offer.idCreadorOferta });
-            console.log("creadorOferta",creadorOferta);
 
-            if ( !creadorServicio.isActive || !creadorOferta.isActive ) {
+            if (!creadorServicio.isActive || !creadorOferta.isActive) {
                 console.log("Alguno de los usuarios creador/ofertador se encuentra inactivo, por lo que se omitirá el proceso de valoración.")
                 estado = 5;
             }
@@ -200,7 +226,8 @@ getFeaturedServicesOfWeek = async (req, res) => {
     try {
         const services = await Service.find({
             lastClickDate: { $gte: oneWeekAgo },
-            isOwnerActive: true
+            isOwnerActive: true,
+            estado: 1
         })
             .sort({ clickCount: -1 })
             .limit(5);
@@ -268,5 +295,6 @@ module.exports = {
     getServicesAcceptedByUser,
     updateService,
     deleteService,
-    getServicesOfferedByUser
+    getServicesOfferedByUser,
+    getCompletedServicesCountByUser
 };

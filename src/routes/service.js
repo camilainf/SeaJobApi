@@ -14,6 +14,7 @@ router.patch('/:id', serviceController.updateServiceStatus);
 router.post('/incrementClick/:id', serviceController.incrementClickCount);
 router.get('/acceptedByUser/:id', serviceController.getServicesAcceptedByUser);
 router.get('/offeredByUser/:id', serviceController.getServicesOfferedByUser);
+router.get('/completedServicesCount/:id', serviceController.getCompletedServicesCountByUser);
 router.delete('/:id', serviceController.deleteService);
 
 module.exports = router;
