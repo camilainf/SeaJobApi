@@ -28,7 +28,7 @@ loginUser = async (req, res) => {
 
         // Genera un JWT
         const token = jwt.sign(
-            { id: user._id, email: user.email , isAdmin: user.isAdmin},
+            { id: user._id, email: user.email, isAdmin: user.isAdmin },
             process.env.SECRET,
             { expiresIn: '1h' }
         );
@@ -211,7 +211,19 @@ getMoneyEarnUser = async (req, res) => {
         const pipeline = [
             // Filtrar ofertas donde el idCreadorOferta es el usuario y estaEscogida es true
             { $match: { idCreadorOferta: objectId, estaEscogida: true } },
-            // Agrupar por null para obtener una suma total, ya que no estamos agrupando por ningún campo específico
+            // Unir con la colección de servicios
+            {
+                $lookup: {
+                    from: 'services', // El nombre de la colección de servicios en la base de datos
+                    localField: 'idServicio',
+                    foreignField: '_id',
+                    as: 'serviceInfo'
+                }
+            },
+            // Descomponer el array 'serviceInfo' para poder filtrar por sus campos
+            { $unwind: '$serviceInfo' },
+            // Filtrar solo los servicios con estado 4, 5 o 6
+            { $match: { 'serviceInfo.estado': { $in: [4, 5, 6] } } },
             {
                 $group: {
                     _id: null,
